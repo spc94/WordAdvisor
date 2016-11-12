@@ -6,8 +6,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.widget.Toast;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
+
+    private static DataBaseHelper ins;
+    DataBaseHelper getIns(){return ins;}
 
     private static final String DATABASE_NAME = "WordAdv";
     private static final int DATABASE_VERSION = 1;
@@ -61,10 +65,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         if (wordExistsOnSingles(word)==false) {
             values.put(WORD_COLUMN,word);
             db.insert(SingleWords, null, values);
+            Toast.makeText(AddWord.getIns(),"Word inserted into Database",
+                    Toast.LENGTH_SHORT).show();
             Log.d("DEBUG","Inserted into Singles");
             return true;
         }
         else {
+            Toast.makeText(AddWord.getIns(),"Word already exists in Database",
+                    Toast.LENGTH_SHORT).show();
             Log.d("DEBUG", "Not inserted into Singles");
             return false;
         }

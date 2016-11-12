@@ -39,7 +39,8 @@
         android:layout_alignStart="@+id/buttonNewText"
         android:layout_marginTop="85dp"
         android:id="@+id/buttonImportText"
-        android:layout_alignEnd="@+id/buttonNewText" />
+        android:layout_alignEnd="@+id/buttonNewText"
+        android:onClick="onClickImport"/>
 
     <Button
         android:text="Button"

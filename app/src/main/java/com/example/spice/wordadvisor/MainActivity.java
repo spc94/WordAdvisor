@@ -33,5 +33,9 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void onClickImport(View view){
+        Intent intent = new Intent(getInstance(),ImportText.class);
+        startActivity(intent);
+    }
 
 }
