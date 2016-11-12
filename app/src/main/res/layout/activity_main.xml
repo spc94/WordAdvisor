@@ -10,8 +10,42 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.spice.wordadvisor.MainActivity">
 
-    <TextView
+
+    <Button
+        android:text="AddWord"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:id="@+id/buttonAddWord"
+        android:layout_alignTop="@+id/buttonNewText"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="50dp"
+        android:onClick="onClickAddWord"/>
+
+    <Button
+        android:text="New Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="50dp"
+        android:id="@+id/buttonNewText"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:text="Import Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/buttonNewText"
+        android:layout_alignStart="@+id/buttonNewText"
+        android:layout_marginTop="85dp"
+        android:id="@+id/buttonImportText"
+        android:layout_alignEnd="@+id/buttonNewText" />
+
+    <Button
+        android:text="Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/buttonImportText"
+        android:layout_alignStart="@+id/buttonAddWord"
+        android:id="@+id/button4" />
 </RelativeLayout>
