@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -63,12 +64,89 @@ public class ImportText extends AppCompatActivity {
         switch (requestCode) {
             case 1:
                 if (resultCode == RESULT_OK) {
-                    Log.d("DEBUG",getPath(getIns(),data.getData()));
                     File file = new File(getPath(getIns(),data.getData()));
-
-
+                    BufferedReader br = null;
+                    try {
+                        br = new BufferedReader(new FileReader(file));
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    StringBuilder textBuilder = new StringBuilder();
+                    String line;
+                    try {
+                        while((line = br.readLine())!=null){
+                            textBuilder.append(line);
+                            textBuilder.append("\n");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    //Log.d("DEBUG",textBuilder.toString());
+                    String[] wordsInFile = textBuilder.toString().split("\\W+");
+                    int i = 0;
+                    String prevWord = "";
+                    DataBaseHelper db = new DataBaseHelper(getIns());
+                    Log.d("DEBUG","Adding words to DB...");
+                    Toast.makeText(getIns(),"Adding new words to the DB...", Toast.LENGTH_SHORT);
+                    for(String word : wordsInFile){
+                        i++;
+                        if(prevWord.equals("")==true) {
+                            sendWordToDB(word);
+                            prevWord = word;
+                        }
+                        else {
+                            sendWordSequenceToDB(prevWord, word);
+                            prevWord = word;
+                        }
+                    }
+                    Log.d("DEBUG","Added Words to DB");
+                    Toast.makeText(getIns(),"Words successfully imported!", Toast.LENGTH_SHORT);
                 }
         }
+    }
+
+    public void sendWordToDB(String word){
+
+        if(checkWordIsOnlyLetters(word)==true ||
+                checkWordIsOnlyDigits(word)==true){
+            DataBaseHelper db = new DataBaseHelper(getIns());
+            db.addWordToSingles(word);
+        }
+
+    }
+
+    public void sendWordSequenceToDB(String prevWord, String word){
+
+        if(checkWordIsOnlyLetters(word)==true ||
+                checkWordIsOnlyDigits(word)==true){
+            DataBaseHelper db = new DataBaseHelper(getIns());
+            db.addWordToSequence(prevWord,word);
+        }
+
+    }
+
+    public boolean checkWordIsOnlyLetters(String word){
+        char[] chars = word.toCharArray();
+        if(chars.length==0)
+            return false;
+        for(char c : chars){
+            if(!Character.isLetter(c)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean checkWordIsOnlyDigits(String word){
+        char[] chars = word.toCharArray();
+        if(chars.length==0)
+            return false;
+        for(char c : chars){
+            if(!Character.isDigit(c)){
+                return false;
+            }
+        }
+        return true;
     }
 
     public static String getPath(final Context context, final Uri uri) {

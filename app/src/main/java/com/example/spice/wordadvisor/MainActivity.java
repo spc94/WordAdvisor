@@ -15,6 +15,8 @@ import static junit.framework.Assert.assertNotNull;
 
 public class MainActivity extends AppCompatActivity {
     private static MainActivity ins;
+    private SQLiteDatabase sqlDB;
+    private DataBaseHelper dbHelper;
     MainActivity getInstance(){
         return ins;
     }
@@ -26,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
         ins = this;
         Log.d("DEBUG","Starting debug");
 
+
     }
 
     public void onClickAddWord(View view){
@@ -35,6 +38,11 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickImport(View view){
         Intent intent = new Intent(getInstance(),ImportText.class);
+        startActivity(intent);
+    }
+
+    public void onClickNewText(View view){
+        Intent intent = new Intent(getInstance(),NewText.class);
         startActivity(intent);
     }
 

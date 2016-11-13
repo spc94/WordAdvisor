@@ -23,11 +23,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     private static final String NUM_SEQ = "num_seq";
     private static final String WORD_COLUMN = "word";
     private static final String SEQ_ID_COLUMN = "seq_ID";
+    private static final String NUM_SINGLE = "num_singles";
 
     private static final String CREATE_SINGLES_TABLE = "CREATE TABLE "
             + SingleWords + "("
             + ID_COLUMN + " INTEGER PRIMARY KEY, "
-            + WORD_COLUMN + " TEXT"
+            + WORD_COLUMN + " TEXT, "
+            + NUM_SINGLE + " INT"
             + ")";
 
     private static final String CREATE_SEQUENCE_TABLE = "CREATE TABLE "
@@ -38,6 +40,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             + "FOREIGN KEY("+ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+"), "
             + "FOREIGN KEY("+NUM_SEQ+") REFERENCES "+SingleWords+"("+ID_COLUMN+")"
             + ")";
+
+    private static final String DROP_SEQUENCE_TABLE ="DROP TABLE " + SequenceWords;
+    private static final String DROP_SINGLES_TABLE  ="DROP TABLE " + SingleWords;
 
     private static DataBaseHelper instance;
     public DataBaseHelper(Context context) {
@@ -64,16 +69,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
         if (wordExistsOnSingles(word)==false) {
             values.put(WORD_COLUMN,word);
+            values.put(NUM_SINGLE,1);
             db.insert(SingleWords, null, values);
-            Toast.makeText(AddWord.getIns(),"Word inserted into Database",
-                    Toast.LENGTH_SHORT).show();
-            Log.d("DEBUG","Inserted into Singles");
             return true;
         }
         else {
-            Toast.makeText(AddWord.getIns(),"Word already exists in Database",
-                    Toast.LENGTH_SHORT).show();
-            Log.d("DEBUG", "Not inserted into Singles");
+            incrementSingles(word);
             return false;
         }
     }
@@ -84,15 +85,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
 
         if(checkSequenceExists(prevWord, word) == false){
+            if(getIDFromWord(prevWord)==-2)
+                addWordToSingles(prevWord);
+            if(getIDFromWord(word)==-2)
+                addWordToSingles(word);
             values.put(ID_COLUMN, getIDFromWord(prevWord));
             values.put(SEQ_ID_COLUMN, getIDFromWord(word));
             values.put(NUM_SEQ, 1);
             db.insert(SequenceWords, null, values);
-            Log.d("DEBUG", "Inserted new values into sequence");
         }
         else{
             incrementSequence(prevWord,word);
-            Log.d("DEBUG", "Incremented sequence");
         }
 
     }
@@ -104,15 +107,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Cursor mCursor = db.rawQuery(count,null);
         mCursor.moveToFirst();
         int iCount = mCursor.getInt(0);
+        mCursor.close();
         if(iCount <=0)
             return -1;
 
         String query = "SELECT id FROM singles WHERE word = ?";
         Cursor mCursor2 = db.rawQuery(query, new String[] {word});
         if(mCursor2.moveToFirst()==false) //Caso não exista na tabela
-            return -1;
-        Log.d("DEBUG","Word: "+word+"; ID: "+mCursor2.getInt(0));
-        return mCursor2.getInt(0); //Retorna ID da palavra
+            return -2;
+        int cursorValue = mCursor2.getInt(0);
+        mCursor2.close();
+        return cursorValue; //Retorna ID da palavra
     }
 
     public boolean wordExistsOnSingles(String word){
@@ -124,6 +129,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Cursor mCursor = db.rawQuery(query,new String[]{word});
         mCursor.moveToFirst();
         int total = mCursor.getInt(0);
+        mCursor.close();
         if(total == 0)
             return false;
         else
@@ -139,7 +145,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Cursor mCursor = db.rawQuery(query,new String[]{""+getIDFromWord(word)});
         mCursor.moveToFirst();
         int total = mCursor.getInt(0);
-        Log.d("DEBUG","Total: "+total);
+        mCursor.close();
         if(total == 0)
             return false;
         else
@@ -155,11 +161,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Cursor mCursor = db.rawQuery(query,new String[]{""+getIDFromWord(word)});
         mCursor.moveToFirst();
         int total = mCursor.getInt(0);
-        Log.d("DEBUG","Total: "+total);
-        if(mCursor.getCount() == 0)
+        mCursor.close();
+        if(total == 0)
             return false;
         else
             return true;
+    }
+
+    public void incrementSingles(String word){
+        SQLiteDatabase db = this.getWritableDatabase();
+        String[] args = new String[]{""+getIDFromWord(word)};
+        ContentValues values = new ContentValues();
+        values.put(NUM_SINGLE,getNumSingles(word)+1);
+        db.update(SingleWords,values, "id=?",args);
     }
 
     public void incrementSequence(String prevWord, String word){
@@ -168,6 +182,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(NUM_SEQ,getNumSeq(prevWord,word)+1);
         db.update(SequenceWords,values, "id=? AND seq_ID=?",args);
+    }
+
+    public int getNumSingles(String word){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT num_singles " +
+                "FROM singles " +
+                "WHERE id=?";
+        Cursor mCursor = db.rawQuery(query,new String[]{""+getIDFromWord(word)});
+        mCursor.moveToFirst();
+        int result = mCursor.getInt(0);
+        mCursor.close();
+        Log.d("DEBUG3","Number in table: "+result);
+        return result;
     }
 
     public int getNumSeq(String prevWord, String word){
@@ -179,7 +206,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 ""+getIDFromWord(word)});
         mCursor.moveToFirst();
         int result = mCursor.getInt(0);
-        Log.d("DEBUG",prevWord + " " + word + " "+result);
+        mCursor.close();
         return result;
     }
 
@@ -192,11 +219,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                                                         ""+getIDFromWord(word)});
         mCursor.moveToFirst();
         int total = mCursor.getInt(0);
-        Log.d("DEBUG","Total Sequence: "+total);
+        mCursor.close();
         if(total== 0)
             return false;
         else
             return true;
-
     }
+
 }
