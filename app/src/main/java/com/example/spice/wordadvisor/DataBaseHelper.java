@@ -226,4 +226,62 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             return true;
     }
 
+    public String[] topSequence(String prevWord){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] top = new String[3];
+        String query = "SELECT word , SUM(seq.num_seq) as qSum " +
+                "FROM singles s " +
+                "INNER JOIN sequences seq ON s.id = seq.seq_ID " +
+                "WHERE seq.id = (SELECT id FROM singles s WHERE s.word=?) " +
+                "GROUP BY seq.seq_ID " +
+                "ORDER BY qSum DESC " +
+                "LIMIT 3";
+        Cursor mCursor = db.rawQuery(query, new String[]{prevWord});
+        Log.d("DEBUG4","Cursor Initialized");
+        Log.d("DEBUG4","Word used: "+prevWord);
+        int i = 0;
+        if(mCursor.moveToFirst()){
+            Log.d("DEBUG4","Cursor moved to first");
+            do{
+                Log.d("DEBUG4","Word at "+i+" = "+mCursor.getString(0));
+                top[i] = mCursor.getString(0);
+                i++;
+                if(i == 3){
+                    mCursor.close();
+                    return top;
+                }
+            }while (mCursor.moveToNext());
+        }
+        mCursor.close();
+        return top;
+    }
+
+    public String[] topIncompleteWord(String incompleteWord){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] top = new String[3];
+        String query = "SELECT word, SUM(s.num_singles) as qSum " +
+                "FROM singles s " +
+                "WHERE word like ? " +
+                "GROUP BY s.id " +
+                "ORDER BY qSum DESC " +
+                "LIMIT 3";
+        Cursor mCursor = db.rawQuery(query, new String[]{incompleteWord+"%"});
+        int i = 0;
+        if(mCursor.moveToFirst()){
+            do{
+                Log.d("DEBUG4","Word at "+i+" = "+mCursor.getString(0));
+                top[i] = mCursor.getString(0);
+                i++;
+                if(i == 3){
+                    mCursor.close();
+                    return top;
+                }
+            }while (mCursor.moveToNext());
+        }
+        mCursor.close();
+        return top;
+
+
+    }
+
 }

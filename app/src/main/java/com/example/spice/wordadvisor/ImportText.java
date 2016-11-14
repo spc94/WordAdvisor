@@ -121,6 +121,7 @@ public class ImportText extends AppCompatActivity {
                 checkWordIsOnlyDigits(word)==true){
             DataBaseHelper db = new DataBaseHelper(getIns());
             db.addWordToSequence(prevWord,word);
+            db.addWordToSingles(word);
         }
 
     }
