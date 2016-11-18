@@ -21,7 +21,12 @@
         <activity android:name=".DataBaseHelper" />
         <activity android:name=".AddWord" />
         <activity android:name=".ImportText" />
-        <activity android:name=".NewText"></activity>
+        <activity android:name=".NewText" />
+
+        <service
+            android:name=".FileService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

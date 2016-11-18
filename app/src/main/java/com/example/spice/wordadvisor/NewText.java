@@ -4,7 +4,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.method.CharacterPickerDialog;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 
 public class NewText extends AppCompatActivity {
@@ -15,14 +18,21 @@ public class NewText extends AppCompatActivity {
     private String prevWord = "";
     private int sizeBefore = 0;
     private static NewText ins;
+    private static String currentText = "";
+    Button bt1;
+    Button bt2;;
+    Button bt3;
+    EditText et;
     static NewText getIns(){return ins;}
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_text);
         ins = this;
-
-        EditText et = (EditText) findViewById(R.id.editText);
+        bt1  = (Button) findViewById(R.id.buttonFirstPlace);
+        bt2  = (Button) findViewById(R.id.buttonSecondPlace);
+        bt3  = (Button) findViewById(R.id.buttonThirdPlace);
+        et = (EditText) findViewById(R.id.editText);
         et.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -33,8 +43,10 @@ public class NewText extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 Log.d("DEBUG3","Size of text: "+charSequence.length());
+                currentText = charSequence.toString();
                 if(sizeBefore < charSequence.length()) {
                     char c;
+                    String[] topWords;
                     DataBaseHelper db = new DataBaseHelper(getIns());
                     int pos = charSequence.length() - 1;
                     if (pos >= 0)
@@ -50,16 +62,16 @@ public class NewText extends AppCompatActivity {
                         currentWord = "";
                         // Get Top Sequence from DB using prevWord
                         if (prevWord.equals("")) {
-                            db.topIncompleteWord("");
+                            topWords = db.topIncompleteWord("");
                         } else {
-                            db.topSequence(prevWord.toLowerCase());
+                            topWords = db.topSequence(prevWord.toLowerCase());
                         }
                     } else {
                         currentWord = currentWord + c;
                         Log.d("DEBUG3", "Alphanumeric detected");
                         Log.d("DEBUG3", "Current word: " + currentWord);
 
-                        db.topIncompleteWord(currentWord);
+                        topWords = db.topIncompleteWord(currentWord);
 
 
                         /* TODO:
@@ -67,6 +79,22 @@ public class NewText extends AppCompatActivity {
                         * Suggest in the middle of the word, when deleting
                         * */
                     }
+
+                        if(topWords[0]!=null)
+                            bt1.setText(topWords[0].toString());
+                        else
+                            bt1.setText("");
+                        if(topWords[1]!=null)
+                            bt2.setText(topWords[1].toString());
+                        else
+                            bt2.setText("");
+                        if(topWords[2]!=null)
+                            bt3.setText(topWords[2].toString());
+                        else
+                            bt3.setText("");
+
+
+
                 }
                 else
                     return;
@@ -78,6 +106,80 @@ public class NewText extends AppCompatActivity {
             }
         });
     }
+
+    public void clickButton1(View view){
+        if(bt1.getText().toString().length()>0)
+            replaceWord(bt1.getText().toString());
+    }
+
+    public void clickButton2(View view){
+        if(bt2.getText().toString().length()>0)
+            replaceWord(bt2.getText().toString());
+    }
+
+    public void clickButton3(View view){
+        if(bt3.getText().toString().length()>0)
+            replaceWord(bt3.getText().toString());
+    }
+
+    public void replaceWord(String wordToReplace){
+        String text = et.getText().toString();
+        int pos;
+        char c;
+        if(text.length()>0)
+            pos = text.length()-1;
+        else
+            pos = 0;
+        try{
+            c = text.charAt(pos);
+        }catch(Exception e){return;};
+         //check if crashes on empty editText
+        Log.d("DEBUG5","Inside click");
+        while(Character.isLetterOrDigit(c)){
+            Log.d("DEBUG5","Char in Clicky: "+c);
+            text = text.substring(0,pos);
+            pos--;
+            if(pos<0)
+                break;
+            c = text.charAt(pos);
+        }
+        if(isFirstWord(text))
+            text = text + String.valueOf(wordToReplace.charAt(0)).toUpperCase() +
+                    wordToReplace.substring(1,wordToReplace.length());
+        else if(isPunctuation(text))
+            text = text + " " + String.valueOf(wordToReplace.charAt(0)).toUpperCase() +
+                    wordToReplace.substring(1,wordToReplace.length());
+        else if(isComma(text))
+            text = text + " " + wordToReplace;
+        else
+            text = text + wordToReplace;
+        currentWord = wordToReplace;
+        et.setText(text+" ");
+        et.setSelection(et.getText().length());
+        currentWord = wordToReplace;
+    }
+
+    public boolean isFirstWord(String text){
+        int pos;
+        if(text.length()>0)
+            return false;
+        return true;
+    }
+
+    public boolean isPunctuation(String text){
+        String punctuation = ".!?";
+        if(punctuation.contains(""+text.charAt(text.length()-1)))
+            return true;
+        return false;
+    }
+
+    public boolean isComma(String text){
+        String punctuation = ",";
+        if(punctuation.contains(""+text.charAt(text.length()-1)))
+            return true;
+        return false;
+    }
+
 
 
 }

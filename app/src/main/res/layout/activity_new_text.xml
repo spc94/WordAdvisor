@@ -21,8 +21,8 @@
     <EditText
         android:layout_width="wrap_content"
         android:layout_weight="50"
-        android:layout_height="250dp"
-        android:inputType="textMultiLine"
+        android:layout_height="175dp"
+        android:inputType="textVisiblePassword|textMultiLine"
         android:lines="10"
         android:minLines="2"
         android:text=""
@@ -33,4 +33,29 @@
         android:layout_below="@+id/textView2"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/buttonSecondPlace"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/buttonFirstPlace"
+        android:onClick="clickButton1"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/buttonFirstPlace"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/buttonThirdPlace"
+        android:onClick="clickButton3"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/buttonSecondPlace"
+        android:layout_below="@+id/editText"
+        android:layout_alignParentStart="true"
+        android:onClick="clickButton2"/>
+
 </RelativeLayout>
