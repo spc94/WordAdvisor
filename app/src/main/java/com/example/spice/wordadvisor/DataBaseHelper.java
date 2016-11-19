@@ -22,11 +22,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     private static final String SingleWords = "singles";
     private static final String SequenceWords = "sequences";
+    private static final String SequenceSequenceWords = "sequencesSequences";
 
     private static final String ID_COLUMN = "id";
     private static final String NUM_SEQ = "num_seq";
     private static final String WORD_COLUMN = "word";
     private static final String SEQ_ID_COLUMN = "seq_ID";
+    private static final String SEQ_SEQ_ID_COLUMN = "seq_seq_ID";
     private static final String NUM_SINGLE = "num_singles";
 
     private static final String CREATE_SINGLES_TABLE = "CREATE TABLE "
@@ -42,7 +44,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             + SEQ_ID_COLUMN + " INT, "
             + NUM_SEQ + " INT, "
             + "FOREIGN KEY("+ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+"), "
-            + "FOREIGN KEY("+NUM_SEQ+") REFERENCES "+SingleWords+"("+ID_COLUMN+")"
+            + "FOREIGN KEY("+SEQ_ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+")"
+            + ")";
+
+    private static final String CREATE_SEQUENCE_SEQUENCE_TABLE = "CREATE TABLE "
+            + SequenceSequenceWords + "("
+            + ID_COLUMN + " INT, "
+            + SEQ_ID_COLUMN + " INT, "
+            + SEQ_SEQ_ID_COLUMN + " INT, "
+            + NUM_SEQ + " INT, "
+            + "FOREIGN KEY("+ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+"), "
+            + "FOREIGN KEY("+SEQ_ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+"), "
+            + "FOREIGN KEY("+SEQ_SEQ_ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+")"
             + ")";
 
     private static final String DROP_SEQUENCE_TABLE ="DROP TABLE " + SequenceWords;
@@ -56,12 +69,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_SEQUENCE_TABLE);
         db.execSQL(CREATE_SINGLES_TABLE);
+        db.execSQL(CREATE_SEQUENCE_SEQUENCE_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + SingleWords);
         db.execSQL("DROP TABLE IF EXISTS " + SequenceWords);
+        db.execSQL("DROP TABLE IF EXISTS " + SequenceSequenceWords);
         // Create tables again
         onCreate(db);
     }
@@ -71,7 +86,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
 
         if (wordExistsOnSingles(word)==false) {
-            values.put(WORD_COLUMN,word);
+            values.put(WORD_COLUMN,word.toLowerCase());
             values.put(NUM_SINGLE,1);
             db.insert(SingleWords, null, values);
             return true;
@@ -101,6 +116,70 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             incrementSequence(prevWord,word);
         }
 
+    }
+
+    public void addWordToSequenceSequence(String prevWord, String word, String nextWord) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        if(checkSequenceSequenceExists(prevWord, word, nextWord) == false){
+            if(getIDFromWord(prevWord)==-2)
+                addWordToSingles(prevWord);
+            if(getIDFromWord(word)==-2)
+                addWordToSingles(word);
+            if(getIDFromWord(nextWord)==-2)
+                addWordToSingles(nextWord);
+            values.put(ID_COLUMN, getIDFromWord(prevWord));
+            values.put(SEQ_ID_COLUMN, getIDFromWord(word));
+            values.put(SEQ_SEQ_ID_COLUMN, getIDFromWord(nextWord));
+            values.put(NUM_SEQ, 1);
+            db.insert(SequenceSequenceWords, null, values);
+        }
+        else{
+            incrementSequenceSequence(prevWord,word,nextWord);
+        }
+
+    }
+
+    public boolean checkSequenceSequenceExists(String prevWord, String word, String nextWord){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT count(*) " +
+                "FROM sequencesSequences " +
+                "WHERE id=(SELECT id FROM singles WHERE word=?) AND " +
+                "seq_ID=(SELECT id FROM singles WHERE word=?) AND " +
+                "seq_seq_ID=(SELECT id FROM singles WHERE word=?)";
+        Cursor mCursor = db.rawQuery(query,new String[]{prevWord,word,nextWord});
+        mCursor.moveToFirst();
+        int total = mCursor.getInt(0);
+        mCursor.close();
+        if(total== 0)
+            return false;
+        else
+            return true;
+    }
+
+    public void incrementSequenceSequence(String prevWord, String word, String nextWord){
+        SQLiteDatabase db = this.getWritableDatabase();
+        String[] args = new String[]{prevWord,word,nextWord};
+        ContentValues values = new ContentValues();
+        values.put(NUM_SEQ,getNumSeqSeq(prevWord,word,nextWord)+1);
+        db.update(SequenceSequenceWords,values, "id=(SELECT id FROM singles WHERE word=?) " +
+                "AND seq_ID=(SELECT id FROM singles WHERE word=?) " +
+                "AND seq_seq_ID=(SELECT id FROM singles WHERE word=?)",args);
+    }
+
+    public int getNumSeqSeq(String prevWord, String word, String nextWord){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT num_seq " +
+                "FROM sequencesSequences " +
+                "WHERE id=(SELECT id FROM singles WHERE word=?) AND " +
+                "seq_ID=(SELECT id FROM singles WHERE word=?) AND " +
+                "seq_seq_ID=(SELECT id FROM singles WHERE word=?)";
+        Cursor mCursor = db.rawQuery(query,new String[]{prevWord,word, nextWord});
+        mCursor.moveToFirst();
+        int result = mCursor.getInt(0);
+        mCursor.close();
+        return result;
     }
 
 
@@ -152,7 +231,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         String[] args = new String[]{prevWord,word};
         ContentValues values = new ContentValues();
         values.put(NUM_SEQ,getNumSeq(prevWord,word)+1);
-        db.update(SequenceWords,values, "id=? AND seq_ID=?",args);
         db.update(SequenceWords,values, "id=(SELECT id FROM singles WHERE word=?) " +
                 "AND seq_ID=(SELECT id FROM singles WHERE word=?)",args);
     }
@@ -194,7 +272,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         mCursor.moveToFirst();
         int total = mCursor.getInt(0);
         mCursor.close();
-        this.close();
         if(total== 0)
             return false;
         else
@@ -228,7 +305,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             }while (mCursor.moveToNext());
         }
         mCursor.close();
-        this.close();
         return top;
     }
 
@@ -255,7 +331,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             }while (mCursor.moveToNext());
         }
         mCursor.close();
-        this.close();
         return top;
 
 

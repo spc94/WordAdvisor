@@ -118,11 +118,25 @@ public class ImportText extends AppCompatActivity {
                 checkWordIsOnlyDigits(word)==true){
             DataBaseHelper db = new DataBaseHelper(this);
             db.addWordToSequence(prevWord,word);
-            db.addWordToSingles(word);
+            //db.addWordToSingles(word);
             db.close();
         }
 
     }
+
+    public void sendWordSequenceSequenceToDB(String prevWord, String word, String nextWord){
+
+        if(checkWordIsOnlyLetters(nextWord)==true ||
+                checkWordIsOnlyDigits(nextWord)==true){
+            DataBaseHelper db = new DataBaseHelper(this);
+            db.addWordToSequenceSequence(prevWord,word,nextWord);
+            //db.addWordToSingles(nextWord);
+            db.close();
+        }
+
+    }
+
+
 
     public boolean checkWordIsOnlyLetters(String word){
         char[] chars = word.toCharArray();
@@ -291,18 +305,28 @@ public class ImportText extends AppCompatActivity {
                 //Log.d("DEBUG",textBuilder.toString());
                 String[] wordsInFile = textBuilder.toString().split("\\W+");
                 int i = 0;
-                String prevWord = "";
+                String prevPrevWord = "";
+                String prevWord     = "";
                 //DataBaseHelper db = new DataBaseHelper(getIns());
                 Log.d("DEBUG","Adding words to DB...");
                 //Toast.makeText(getIns(),"Adding new words to the DB...", Toast.LENGTH_SHORT);
                 for(String word : wordsInFile){
                     i++;
-                    if(prevWord.equals("")==true) {
+                    if(prevPrevWord.equals("")==true) {
+                        Log.d("DEBUG","Word pp "+i+": "+word);
                         sendWordToDB(word);
+                        prevPrevWord = word;
+                    }
+                    else if(prevWord.equals("")==true){
+                        Log.d("DEBUG","Word p "+i+": "+word);
+                        sendWordSequenceToDB(prevPrevWord, word);
                         prevWord = word;
                     }
-                    else {
-                        sendWordSequenceToDB(prevWord, word);
+                    else{
+                        Log.d("DEBUG","Word "+i+": "+word);
+                        sendWordSequenceToDB(prevWord,word);
+                        sendWordSequenceSequenceToDB(prevPrevWord,prevWord,word);
+                        prevPrevWord = prevWord;
                         prevWord = word;
                     }
                 }

@@ -16,6 +16,7 @@ public class NewText extends AppCompatActivity {
     private int atSpecialChar = 0;
     private String currentWord= "";
     private String prevWord = "";
+    private String prevPrevWord = "";
     private int sizeBefore = 0;
     private static NewText ins;
     private static String currentText = "";
