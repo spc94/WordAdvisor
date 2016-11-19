@@ -9,9 +9,13 @@ import android.util.Log;
 import android.widget.Toast;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
-
-    private static DataBaseHelper ins;
-    DataBaseHelper getIns(){return ins;}
+    private static DataBaseHelper ins = null;
+    public static DataBaseHelper getIns(Context ctx){
+            if (ins == null) {
+                ins = new DataBaseHelper(ctx.getApplicationContext());
+            }
+        return ins;
+    }
 
     private static final String DATABASE_NAME = "WordAdv";
     private static final int DATABASE_VERSION = 1;
@@ -44,7 +48,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     private static final String DROP_SEQUENCE_TABLE ="DROP TABLE " + SequenceWords;
     private static final String DROP_SINGLES_TABLE  ="DROP TABLE " + SingleWords;
 
-    private static DataBaseHelper instance;
     public DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -136,74 +139,45 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             return true;
     }
 
-
-    public boolean wordExistsOnLeftSequence(String word){
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT count(*) " +
-                "FROM sequences " +
-                "WHERE id=?";
-        Cursor mCursor = db.rawQuery(query,new String[]{""+getIDFromWord(word)});
-        mCursor.moveToFirst();
-        int total = mCursor.getInt(0);
-        mCursor.close();
-        if(total == 0)
-            return false;
-        else
-            return true;
-    }
-
-    public boolean wordExistsOnRightSequence(String word){
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT count(*) " +
-                "FROM sequences " +
-                "WHERE seq_ID=?";
-
-        Cursor mCursor = db.rawQuery(query,new String[]{""+getIDFromWord(word)});
-        mCursor.moveToFirst();
-        int total = mCursor.getInt(0);
-        mCursor.close();
-        if(total == 0)
-            return false;
-        else
-            return true;
-    }
-
     public void incrementSingles(String word){
         SQLiteDatabase db = this.getWritableDatabase();
-        String[] args = new String[]{""+getIDFromWord(word)};
+        String[] args = new String[]{word};
         ContentValues values = new ContentValues();
         values.put(NUM_SINGLE,getNumSingles(word)+1);
-        db.update(SingleWords,values, "id=?",args);
+        db.update(SingleWords,values, "id=(SELECT id FROM singles WHERE word=?)",args);
     }
 
     public void incrementSequence(String prevWord, String word){
         SQLiteDatabase db = this.getWritableDatabase();
-        String[] args = new String[]{""+getIDFromWord(prevWord),""+getIDFromWord(word)};
+        String[] args = new String[]{prevWord,word};
         ContentValues values = new ContentValues();
         values.put(NUM_SEQ,getNumSeq(prevWord,word)+1);
         db.update(SequenceWords,values, "id=? AND seq_ID=?",args);
+        db.update(SequenceWords,values, "id=(SELECT id FROM singles WHERE word=?) " +
+                "AND seq_ID=(SELECT id FROM singles WHERE word=?)",args);
     }
+
+
 
     public int getNumSingles(String word){
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT num_singles " +
-                "FROM singles " +
-                "WHERE id=?";
-        Cursor mCursor = db.rawQuery(query,new String[]{""+getIDFromWord(word)});
+                       "FROM singles " +
+                       "WHERE id = (SELECT id FROM singles WHERE word=?)";
+        Cursor mCursor = db.rawQuery(query,new String[]{word});
         mCursor.moveToFirst();
         int result = mCursor.getInt(0);
         mCursor.close();
-        Log.d("DEBUG3","Number in table: "+result);
         return result;
     }
 
     public int getNumSeq(String prevWord, String word){
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT num_seq " +
-                    "FROM sequences " +
-                    "WHERE id=? AND seq_ID=?";
-        Cursor mCursor = db.rawQuery(query,new String[]{""+getIDFromWord(prevWord),
-                ""+getIDFromWord(word)});
+                "FROM sequences " +
+                "WHERE id=(SELECT id FROM singles WHERE word=?) AND " +
+                "seq_ID=(SELECT id FROM singles WHERE word=?)";
+        Cursor mCursor = db.rawQuery(query,new String[]{prevWord,word});
         mCursor.moveToFirst();
         int result = mCursor.getInt(0);
         mCursor.close();
@@ -213,13 +187,14 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public boolean checkSequenceExists(String prevWord, String word){
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT count(*) " +
-                    "FROM sequences " +
-                    "WHERE id=? AND seq_ID=?";
-        Cursor mCursor = db.rawQuery(query,new String[]{""+getIDFromWord(prevWord),
-                                                        ""+getIDFromWord(word)});
+                       "FROM sequences " +
+                       "WHERE id=(SELECT id FROM singles WHERE word=?) AND " +
+                       "seq_ID=(SELECT id FROM singles WHERE word=?)";
+        Cursor mCursor = db.rawQuery(query,new String[]{prevWord,word});
         mCursor.moveToFirst();
         int total = mCursor.getInt(0);
         mCursor.close();
+        this.close();
         if(total== 0)
             return false;
         else
@@ -253,6 +228,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             }while (mCursor.moveToNext());
         }
         mCursor.close();
+        this.close();
         return top;
     }
 
@@ -279,6 +255,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             }while (mCursor.moveToNext());
         }
         mCursor.close();
+        this.close();
         return top;
 
 

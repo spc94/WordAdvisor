@@ -1,11 +1,18 @@
+// ALTERAÇÕES ANDRÉ:
+// Adição de uma variavel global ProgressDialog
+// Nova Classe: ReadTask
+// Adição de código ao método onActivityResult
+
 package com.example.spice.wordadvisor;
 
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
@@ -25,10 +32,9 @@ import java.io.IOException;
 public class ImportText extends AppCompatActivity {
 
     private static ImportText ins;
+    ProgressDialog progressDialog;
+    private static ImportText getIns(){return ins;}
 
-    static ImportText getIns() {
-        return ins;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,43 +70,33 @@ public class ImportText extends AppCompatActivity {
         switch (requestCode) {
             case 1:
                 if (resultCode == RESULT_OK) {
-                    File file = new File(getPath(getIns(),data.getData()));
-                    BufferedReader br = null;
-                    try {
-                        br = new BufferedReader(new FileReader(file));
-                    } catch (FileNotFoundException e) {
+                    // ALTERAÇÕES
+                    try{
+                        progressDialog = new ProgressDialog(this);
+                        // "this" porque esta classe ImportText é uma activity, 
+                        // senão tinhas de usar getActivity() para obter o Context
+                        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                        progressDialog.setCancelable(false);
+                        progressDialog.setMessage("A ler o ficheiro...");
+                        progressDialog.show();
+                        new ReadTask(data){
+                            @Override
+                            protected void onPostExecute(Object o) {
+                                super.onPostExecute(o);
+                                progressDialog.dismiss();
+                                if (o instanceof String){
+                                    Toast.makeText(getIns(), "Unexpected error: " + o, Toast.LENGTH_LONG).show();
+                                }
+                                Log.d("DEBUG","Added Words to DB");
+                                Toast.makeText(getIns(),"Words successfully imported!", Toast.LENGTH_SHORT);
+                            }
+                        }.execute();
+                    }
+                    catch (Exception e)
+                    {
                         e.printStackTrace();
                     }
-                    StringBuilder textBuilder = new StringBuilder();
-                    String line;
-                    try {
-                        while((line = br.readLine())!=null){
-                            textBuilder.append(line);
-                            textBuilder.append("\n");
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    //Log.d("DEBUG",textBuilder.toString());
-                    String[] wordsInFile = textBuilder.toString().split("\\W+");
-                    int i = 0;
-                    String prevWord = "";
-                    DataBaseHelper db = new DataBaseHelper(getIns());
-                    Log.d("DEBUG","Adding words to DB...");
-                    Toast.makeText(getIns(),"Adding new words to the DB...", Toast.LENGTH_SHORT);
-                    for(String word : wordsInFile){
-                        i++;
-                        if(prevWord.equals("")==true) {
-                            sendWordToDB(word);
-                            prevWord = word;
-                        }
-                        else {
-                            sendWordSequenceToDB(prevWord, word);
-                            prevWord = word;
-                        }
-                    }
-                    Log.d("DEBUG","Added Words to DB");
-                    Toast.makeText(getIns(),"Words successfully imported!", Toast.LENGTH_SHORT);
+
                 }
         }
     }
@@ -109,8 +105,9 @@ public class ImportText extends AppCompatActivity {
 
         if(checkWordIsOnlyLetters(word)==true ||
                 checkWordIsOnlyDigits(word)==true){
-            DataBaseHelper db = new DataBaseHelper(getIns());
+            DataBaseHelper db = new DataBaseHelper(this);
             db.addWordToSingles(word);
+            db.close();
         }
 
     }
@@ -119,9 +116,10 @@ public class ImportText extends AppCompatActivity {
 
         if(checkWordIsOnlyLetters(word)==true ||
                 checkWordIsOnlyDigits(word)==true){
-            DataBaseHelper db = new DataBaseHelper(getIns());
+            DataBaseHelper db = new DataBaseHelper(this);
             db.addWordToSequence(prevWord,word);
             db.addWordToSingles(word);
+            db.close();
         }
 
     }
@@ -261,5 +259,59 @@ public class ImportText extends AppCompatActivity {
     public static boolean isGooglePhotosUri(Uri uri) {
         return "com.google.android.apps.photos.content".equals(uri.getAuthority());
     }
-}
 
+    // NOVA CLASSE
+    public class ReadTask extends AsyncTask {
+        Intent data;
+
+        public ReadTask(Intent data) {
+            this.data = data;
+        }
+
+        @Override
+        protected Object doInBackground(Object[] params) {
+            try {
+                File file = new File(getPath(getIns(),data.getData()));
+                BufferedReader br = null;
+                try {
+                    br = new BufferedReader(new FileReader(file));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                StringBuilder textBuilder = new StringBuilder();
+                String line;
+                try {
+                    while((line = br.readLine())!=null){
+                        textBuilder.append(line);
+                        textBuilder.append("\n");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                //Log.d("DEBUG",textBuilder.toString());
+                String[] wordsInFile = textBuilder.toString().split("\\W+");
+                int i = 0;
+                String prevWord = "";
+                //DataBaseHelper db = new DataBaseHelper(getIns());
+                Log.d("DEBUG","Adding words to DB...");
+                //Toast.makeText(getIns(),"Adding new words to the DB...", Toast.LENGTH_SHORT);
+                for(String word : wordsInFile){
+                    i++;
+                    if(prevWord.equals("")==true) {
+                        sendWordToDB(word);
+                        prevWord = word;
+                    }
+                    else {
+                        sendWordSequenceToDB(prevWord, word);
+                        prevWord = word;
+                    }
+                }
+                Log.d("DEBUG","Number of words: "+i);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return e.getMessage();
+            }
+            return 0;
+        }
+    }
+}

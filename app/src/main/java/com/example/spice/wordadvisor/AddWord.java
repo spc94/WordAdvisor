@@ -23,7 +23,7 @@ public class AddWord extends AppCompatActivity {
         etAddWord.setOnEditorActionListener(new EditText.OnEditorActionListener(){
             @Override
             public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
-                sendWordToDB(etAddWord.getText().toString());
+                sendWordToDB(etAddWord.getText().toString().toLowerCase());
                 if(flag == true)
                     finish();
                 return true;

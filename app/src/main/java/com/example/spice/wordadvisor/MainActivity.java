@@ -26,7 +26,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ins = this;
-        Log.d("DEBUG","Starting debug");
 
 
     }
