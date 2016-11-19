@@ -85,7 +85,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
-        if (wordExistsOnSingles(word)==false) {
+        if (wordExistsOnSingles(word.toLowerCase())==false) {
             values.put(WORD_COLUMN,word.toLowerCase());
             values.put(NUM_SINGLE,1);
             db.insert(SingleWords, null, values);
@@ -102,18 +102,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
-        if(checkSequenceExists(prevWord, word) == false){
-            if(getIDFromWord(prevWord)==-2)
-                addWordToSingles(prevWord);
-            if(getIDFromWord(word)==-2)
-                addWordToSingles(word);
-            values.put(ID_COLUMN, getIDFromWord(prevWord));
-            values.put(SEQ_ID_COLUMN, getIDFromWord(word));
+        if(checkSequenceExists(prevWord.toLowerCase(), word.toLowerCase()) == false){
+            if(getIDFromWord(prevWord.toLowerCase())==-2)
+                addWordToSingles(prevWord.toLowerCase());
+            if(getIDFromWord(word.toLowerCase())==-2)
+                addWordToSingles(word.toLowerCase());
+            values.put(ID_COLUMN, getIDFromWord(prevWord.toLowerCase()));
+            values.put(SEQ_ID_COLUMN, getIDFromWord(word.toLowerCase()));
             values.put(NUM_SEQ, 1);
             db.insert(SequenceWords, null, values);
         }
         else{
-            incrementSequence(prevWord,word);
+            incrementSequence(prevWord.toLowerCase(),word.toLowerCase());
         }
 
     }
@@ -123,20 +123,21 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
 
         if(checkSequenceSequenceExists(prevWord, word, nextWord) == false){
-            if(getIDFromWord(prevWord)==-2)
-                addWordToSingles(prevWord);
-            if(getIDFromWord(word)==-2)
-                addWordToSingles(word);
-            if(getIDFromWord(nextWord)==-2)
-                addWordToSingles(nextWord);
-            values.put(ID_COLUMN, getIDFromWord(prevWord));
-            values.put(SEQ_ID_COLUMN, getIDFromWord(word));
-            values.put(SEQ_SEQ_ID_COLUMN, getIDFromWord(nextWord));
+            if(getIDFromWord(prevWord.toLowerCase())==-2)
+                addWordToSingles(prevWord.toLowerCase());
+            if(getIDFromWord(word.toLowerCase())==-2)
+                addWordToSingles(word.toLowerCase());
+            if(getIDFromWord(nextWord.toLowerCase())==-2)
+                addWordToSingles(nextWord.toLowerCase());
+            values.put(ID_COLUMN, getIDFromWord(prevWord.toLowerCase()));
+            values.put(SEQ_ID_COLUMN, getIDFromWord(word.toLowerCase()));
+            values.put(SEQ_SEQ_ID_COLUMN, getIDFromWord(nextWord.toLowerCase()));
             values.put(NUM_SEQ, 1);
             db.insert(SequenceSequenceWords, null, values);
         }
         else{
-            incrementSequenceSequence(prevWord,word,nextWord);
+            incrementSequenceSequence(prevWord.toLowerCase(),word.toLowerCase(),
+                    nextWord.toLowerCase());
         }
 
     }
@@ -148,7 +149,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 "WHERE id=(SELECT id FROM singles WHERE word=?) AND " +
                 "seq_ID=(SELECT id FROM singles WHERE word=?) AND " +
                 "seq_seq_ID=(SELECT id FROM singles WHERE word=?)";
-        Cursor mCursor = db.rawQuery(query,new String[]{prevWord,word,nextWord});
+        Cursor mCursor = db.rawQuery(query,new String[]{prevWord.toLowerCase(),word.toLowerCase(),
+                nextWord.toLowerCase()});
         mCursor.moveToFirst();
         int total = mCursor.getInt(0);
         mCursor.close();
@@ -160,9 +162,11 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public void incrementSequenceSequence(String prevWord, String word, String nextWord){
         SQLiteDatabase db = this.getWritableDatabase();
-        String[] args = new String[]{prevWord,word,nextWord};
+        String[] args = new String[]{prevWord.toLowerCase(),word.toLowerCase(),
+                nextWord.toLowerCase()};
         ContentValues values = new ContentValues();
-        values.put(NUM_SEQ,getNumSeqSeq(prevWord,word,nextWord)+1);
+        values.put(NUM_SEQ,getNumSeqSeq(prevWord.toLowerCase(),word.toLowerCase(),
+                nextWord.toLowerCase())+1);
         db.update(SequenceSequenceWords,values, "id=(SELECT id FROM singles WHERE word=?) " +
                 "AND seq_ID=(SELECT id FROM singles WHERE word=?) " +
                 "AND seq_seq_ID=(SELECT id FROM singles WHERE word=?)",args);
@@ -175,7 +179,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 "WHERE id=(SELECT id FROM singles WHERE word=?) AND " +
                 "seq_ID=(SELECT id FROM singles WHERE word=?) AND " +
                 "seq_seq_ID=(SELECT id FROM singles WHERE word=?)";
-        Cursor mCursor = db.rawQuery(query,new String[]{prevWord,word, nextWord});
+        Cursor mCursor = db.rawQuery(query,new String[]{prevWord.toLowerCase(),word.toLowerCase(),
+                nextWord.toLowerCase()});
         mCursor.moveToFirst();
         int result = mCursor.getInt(0);
         mCursor.close();
@@ -194,7 +199,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             return -1;
 
         String query = "SELECT id FROM singles WHERE word = ?";
-        Cursor mCursor2 = db.rawQuery(query, new String[] {word});
+        Cursor mCursor2 = db.rawQuery(query, new String[] {word.toLowerCase()});
         if(mCursor2.moveToFirst()==false) //Caso não exista na tabela
             return -2;
         int cursorValue = mCursor2.getInt(0);
@@ -208,7 +213,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 "FROM singles " +
                 "WHERE word=?";
 
-        Cursor mCursor = db.rawQuery(query,new String[]{word});
+        Cursor mCursor = db.rawQuery(query,new String[]{word.toLowerCase()});
         mCursor.moveToFirst();
         int total = mCursor.getInt(0);
         mCursor.close();
@@ -220,17 +225,17 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public void incrementSingles(String word){
         SQLiteDatabase db = this.getWritableDatabase();
-        String[] args = new String[]{word};
+        String[] args = new String[]{word.toLowerCase()};
         ContentValues values = new ContentValues();
-        values.put(NUM_SINGLE,getNumSingles(word)+1);
+        values.put(NUM_SINGLE,getNumSingles(word.toLowerCase())+1);
         db.update(SingleWords,values, "id=(SELECT id FROM singles WHERE word=?)",args);
     }
 
     public void incrementSequence(String prevWord, String word){
         SQLiteDatabase db = this.getWritableDatabase();
-        String[] args = new String[]{prevWord,word};
+        String[] args = new String[]{prevWord.toLowerCase(),word.toLowerCase()};
         ContentValues values = new ContentValues();
-        values.put(NUM_SEQ,getNumSeq(prevWord,word)+1);
+        values.put(NUM_SEQ,getNumSeq(prevWord.toLowerCase(),word.toLowerCase())+1);
         db.update(SequenceWords,values, "id=(SELECT id FROM singles WHERE word=?) " +
                 "AND seq_ID=(SELECT id FROM singles WHERE word=?)",args);
     }
@@ -242,7 +247,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         String query = "SELECT num_singles " +
                        "FROM singles " +
                        "WHERE id = (SELECT id FROM singles WHERE word=?)";
-        Cursor mCursor = db.rawQuery(query,new String[]{word});
+        Cursor mCursor = db.rawQuery(query,new String[]{word.toLowerCase()});
         mCursor.moveToFirst();
         int result = mCursor.getInt(0);
         mCursor.close();
@@ -255,7 +260,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 "FROM sequences " +
                 "WHERE id=(SELECT id FROM singles WHERE word=?) AND " +
                 "seq_ID=(SELECT id FROM singles WHERE word=?)";
-        Cursor mCursor = db.rawQuery(query,new String[]{prevWord,word});
+        Cursor mCursor = db.rawQuery(query,new String[]{prevWord.toLowerCase(),word.toLowerCase()});
         mCursor.moveToFirst();
         int result = mCursor.getInt(0);
         mCursor.close();
@@ -268,7 +273,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                        "FROM sequences " +
                        "WHERE id=(SELECT id FROM singles WHERE word=?) AND " +
                        "seq_ID=(SELECT id FROM singles WHERE word=?)";
-        Cursor mCursor = db.rawQuery(query,new String[]{prevWord,word});
+        Cursor mCursor = db.rawQuery(query,new String[]{prevWord.toLowerCase(),word.toLowerCase()});
         mCursor.moveToFirst();
         int total = mCursor.getInt(0);
         mCursor.close();
@@ -288,9 +293,41 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 "GROUP BY seq.seq_ID " +
                 "ORDER BY qSum DESC " +
                 "LIMIT 3";
-        Cursor mCursor = db.rawQuery(query, new String[]{prevWord});
+        Cursor mCursor = db.rawQuery(query, new String[]{prevWord.toLowerCase()});
         Log.d("DEBUG4","Cursor Initialized");
-        Log.d("DEBUG4","Word used: "+prevWord);
+        Log.d("DEBUG4","Word used: "+prevWord.toLowerCase());
+        int i = 0;
+        if(mCursor.moveToFirst()){
+            Log.d("DEBUG4","Cursor moved to first");
+            do{
+                Log.d("DEBUG4","Word at "+i+" = "+mCursor.getString(0));
+                top[i] = mCursor.getString(0);
+                i++;
+                if(i == 3){
+                    mCursor.close();
+                    return top;
+                }
+            }while (mCursor.moveToNext());
+        }
+        mCursor.close();
+        return top;
+    }
+
+    public String[] topSequenceSequence(String prevPrevWord, String prevWord){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] top = new String[3];
+        String query = "SELECT word, SUM(seqseq.num_seq) as qSum " +
+                "FROM singles s " +
+                "INNER JOIN sequencesSequences seqseq ON s.id=seqseq.seq_seq_ID " +
+                "WHERE seqseq.id = (SELECT id FROM singles s WHERE s.word=?) " +
+                "AND seqseq.seq_id = (SELECT id FROM singles s WHERE s.word =?) " +
+                "GROUP BY seqseq.seq_seq_ID " +
+                "ORDER BY qSum DESC " +
+                "LIMIT 3";
+        Cursor mCursor = db.rawQuery(query, new String[]{prevPrevWord.toLowerCase(),prevWord.toLowerCase()});
+        Log.d("DEBUG4","Cursor Initialized");
+        Log.d("DEBUG4","PP Word used: "+prevPrevWord.toLowerCase());
+        Log.d("DEBUG4","P Word used: "+prevWord.toLowerCase());
         int i = 0;
         if(mCursor.moveToFirst()){
             Log.d("DEBUG4","Cursor moved to first");
@@ -317,7 +354,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 "GROUP BY s.id " +
                 "ORDER BY qSum DESC " +
                 "LIMIT 3";
-        Cursor mCursor = db.rawQuery(query, new String[]{incompleteWord+"%"});
+        Cursor mCursor = db.rawQuery(query, new String[]{incompleteWord.toLowerCase()+"%"});
         int i = 0;
         if(mCursor.moveToFirst()){
             do{

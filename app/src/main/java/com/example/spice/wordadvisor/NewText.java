@@ -48,6 +48,7 @@ public class NewText extends AppCompatActivity {
                 if(sizeBefore < charSequence.length()) {
                     char c;
                     String[] topWords;
+                    String[] topWordsAux;
                     DataBaseHelper db = new DataBaseHelper(getIns());
                     int pos = charSequence.length() - 1;
                     if (pos >= 0)
@@ -58,14 +59,46 @@ public class NewText extends AppCompatActivity {
                     if (!Character.isLetterOrDigit(c)) {
                         Log.d("DEBUG3", "Special char detected");
 
+                        prevPrevWord = prevWord;
                         prevWord = currentWord;
-                        Log.d("DEBUG3", "Previous Word: " + prevWord);
+                        Log.d("DEBUG3", "Previous Previous Word: " + prevPrevWord);
                         currentWord = "";
                         // Get Top Sequence from DB using prevWord
-                        if (prevWord.equals("")) {
+                        if (prevPrevWord.equals("") && prevWord.equals("")) {
                             topWords = db.topIncompleteWord("");
-                        } else {
+                        }
+                        else if(prevPrevWord.equals("")){
                             topWords = db.topSequence(prevWord.toLowerCase());
+                        }
+                        else{
+                            topWords = db.topSequenceSequence(prevPrevWord.toLowerCase(),
+                                    prevWord.toLowerCase());
+                            if(topWords[2]==null) { //If no sequence-sequence results
+
+                                topWordsAux = db.topSequence(prevWord.toLowerCase());
+                                Log.d("DEBUG","TOP WORDS AUX 2: "+ topWordsAux[2]);
+                                Log.d("DEBUG","TOP WORDS AUX 1: "+ topWordsAux[1]);
+                                Log.d("DEBUG","TOP WORDS AUX 0: "+ topWordsAux[0]);
+                                Log.d("DEBUG","TOP WORDS 0: "+ topWords[0]);
+                                Log.d("DEBUG","TOP WORDS 1: "+ topWords[1]);
+                                if(topWordsAux[2]!=null) {
+                                    if (!topWordsAux[2].equals(topWords[0]) ||
+                                            !topWordsAux[2].equals(topWords[1])) {//If the word from sequence doesn't already belong to a sequence-sequence
+                                        topWords[2] = topWordsAux[2];
+                                    }
+                                }
+                            }
+                            if(topWords[1]==null){//If only 1 sequence-sequence result
+
+                                topWordsAux = db.topSequence(prevWord.toLowerCase());
+                                if(topWordsAux[1]!=null){
+                                    if (!topWordsAux[1].equals(topWords[0]))
+                                        topWords[1] = topWordsAux[1];
+                                }
+                            }
+                            if(topWords[0]==null)//If no sequence-sequence result
+                                topWords = db.topSequence(prevWord.toLowerCase());
+
                         }
                     } else {
                         currentWord = currentWord + c;
