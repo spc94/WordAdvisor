@@ -248,6 +248,9 @@ public class NewText extends AppCompatActivity {
         String punctuation = ".!?";
         if (punctuation.contains("" + text.charAt(text.length() - 1)))
                 return true;
+        Log.d("DEBUG",""+(text.length()-2));
+        if((text.length()-2)<0)
+            return false;
         if (punctuation.contains("" + text.charAt(text.length() - 2))) {
             spaceFlag = true;
             return true;
@@ -259,6 +262,8 @@ public class NewText extends AppCompatActivity {
         String punctuation = ",";
         if (punctuation.contains("" + text.charAt(text.length() - 1)))
                 return true;
+        if((text.length()-2)<0)
+            return false;
          if (punctuation.contains("" + text.charAt(text.length() - 2))) {
              spaceFlag = true;
              return true;
