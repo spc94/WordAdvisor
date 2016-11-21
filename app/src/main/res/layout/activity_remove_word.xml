@@ -10,4 +10,23 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.spice.wordadvisor.RemoveWord">
 
+    <TextView
+        android:text="Remove a word from the database"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="85dp"
+        android:id="@+id/textView"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:ems="10"
+        android:layout_below="@+id/textView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="61dp"
+        android:id="@+id/etRemoveWord" />
+
 </RelativeLayout>

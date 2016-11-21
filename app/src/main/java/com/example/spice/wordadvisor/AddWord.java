@@ -41,9 +41,17 @@ public class AddWord extends AppCompatActivity {
         if(checkWordIsOnlyLetters(word)==true ||
                 checkWordIsOnlyDigits(word)==true){
             DataBaseHelper db = new DataBaseHelper(this);
-            db.addWordToSingles(word);
-            flag = true;
+            if(db.addWordToSingles(word)==true){
+                    Toast.makeText(this, "The word was added successfully!", Toast.LENGTH_SHORT).show();
+                    flag = true;
+            }
+            else{
+                Toast.makeText(this, "The word already exists on the database!", Toast.LENGTH_SHORT).show();
+                flag = false;
+            }
         }
+        else
+            Toast.makeText(this,"The word must be comprised of only letters or only digits!",Toast.LENGTH_SHORT).show();
 
     }
 
@@ -52,8 +60,6 @@ public class AddWord extends AppCompatActivity {
 
         for(char c : chars){
             if(!Character.isLetter(c)) {
-                Toast.makeText(getIns(),"Word must be only letters or only digits",
-                        Toast.LENGTH_SHORT).show();
                 return false;
             }
         }
@@ -65,8 +71,6 @@ public class AddWord extends AppCompatActivity {
 
         for(char c : chars){
             if(!Character.isDigit(c)){
-                Toast.makeText(getIns(),"Word must be only letters or only digits",
-                        Toast.LENGTH_SHORT).show();
                 return false;
             }
         }

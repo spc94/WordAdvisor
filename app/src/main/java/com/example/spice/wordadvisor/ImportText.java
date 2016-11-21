@@ -1,8 +1,3 @@
-// ALTERAÇÕES ANDRÉ:
-// Adição de uma variavel global ProgressDialog
-// Nova Classe: ReadTask
-// Adição de código ao método onActivityResult
-
 package com.example.spice.wordadvisor;
 
 import android.app.ProgressDialog;
@@ -45,17 +40,6 @@ public class ImportText extends AppCompatActivity {
     }
 
     public void onClickImportFile(View view) throws IOException {
-        /*File file = Environment.getExternalStorageDirectory();
-        File textFile = new File(file.getAbsolutePath()+File.separator+"chapter.xml");
-        BufferedReader reader = new BufferedReader(new FileReader(textFile));
-        StringBuilder textBuilder = new StringBuilder();
-        String line;
-        while((line = reader.readLine())!=null){
-            textBuilder.append(line);
-            textBuilder.append("\n");
-        }
-        Log.d("DEBUG", textBuilder.toString());
-        */
         Intent fileIntent = new Intent(Intent.ACTION_GET_CONTENT);
         fileIntent.setType("*/*");
         try {
@@ -70,11 +54,8 @@ public class ImportText extends AppCompatActivity {
         switch (requestCode) {
             case 1:
                 if (resultCode == RESULT_OK) {
-                    // ALTERAÇÕES
                     try{
                         progressDialog = new ProgressDialog(this);
-                        // "this" porque esta classe ImportText é uma activity, 
-                        // senão tinhas de usar getActivity() para obter o Context
                         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                         progressDialog.setCancelable(false);
                         progressDialog.setMessage("A ler o ficheiro...");
@@ -164,22 +145,18 @@ public class ImportText extends AppCompatActivity {
 
     public static String getPath(final Context context, final Uri uri) {
 
-        // DocumentProvider
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && DocumentsContract.isDocumentUri(context, uri)) {
 
-            if (isExternalStorageDocument(uri)) {// ExternalStorageProvider
+            if (isExternalStorageDocument(uri)) {
                 final String docId = DocumentsContract.getDocumentId(uri);
                 final String[] split = docId.split(":");
                 final String type = split[0];
                 String storageDefinition;
 
-
                 if("primary".equalsIgnoreCase(type)){
-
                     return Environment.getExternalStorageDirectory() + "/" + split[1];
 
                 } else {
-
                     if(Environment.isExternalStorageRemovable()){
                         storageDefinition = "EXTERNAL_STORAGE";
 
@@ -190,7 +167,7 @@ public class ImportText extends AppCompatActivity {
                     return System.getenv(storageDefinition) + "/" + split[1];
                 }
 
-            } else if (isDownloadsDocument(uri)) {// DownloadsProvider
+            } else if (isDownloadsDocument(uri)) {
 
                 final String id = DocumentsContract.getDocumentId(uri);
                 final Uri contentUri = ContentUris.withAppendedId(
@@ -198,7 +175,7 @@ public class ImportText extends AppCompatActivity {
 
                 return getDataColumn(context, contentUri, null, null);
 
-            } else if (isMediaDocument(uri)) {// MediaProvider
+            } else if (isMediaDocument(uri)) {
                 final String docId = DocumentsContract.getDocumentId(uri);
                 final String[] split = docId.split(":");
                 final String type = split[0];
@@ -220,15 +197,14 @@ public class ImportText extends AppCompatActivity {
                 return getDataColumn(context, contentUri, selection, selectionArgs);
             }
 
-        } else if ("content".equalsIgnoreCase(uri.getScheme())) {// MediaStore (and general)
+        } else if ("content".equalsIgnoreCase(uri.getScheme())) {
 
-            // Return the remote address
             if (isGooglePhotosUri(uri))
                 return uri.getLastPathSegment();
 
             return getDataColumn(context, uri, null, null);
 
-        } else if ("file".equalsIgnoreCase(uri.getScheme())) {// File
+        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
             return uri.getPath();
         }
 
@@ -274,7 +250,6 @@ public class ImportText extends AppCompatActivity {
         return "com.google.android.apps.photos.content".equals(uri.getAuthority());
     }
 
-    // NOVA CLASSE
     public class ReadTask extends AsyncTask {
         Intent data;
 
@@ -302,14 +277,11 @@ public class ImportText extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                //Log.d("DEBUG",textBuilder.toString());
                 String[] wordsInFile = textBuilder.toString().split("\\W+");
                 int i = 0;
                 String prevPrevWord = "";
                 String prevWord     = "";
-                //DataBaseHelper db = new DataBaseHelper(getIns());
                 Log.d("DEBUG","Adding words to DB...");
-                //Toast.makeText(getIns(),"Adding new words to the DB...", Toast.LENGTH_SHORT);
                 for(String word : wordsInFile){
                     i++;
                     if(prevPrevWord.equals("")==true) {

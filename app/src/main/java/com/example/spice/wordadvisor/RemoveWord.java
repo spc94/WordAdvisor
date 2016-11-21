@@ -13,16 +13,17 @@ public class RemoveWord extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_word);
+        setContentView(R.layout.activity_remove_word);
 
-        final EditText etRemoveWord = (EditText) findViewById(R.id.etWord);
+        final EditText etRemoveWord = (EditText) findViewById(R.id.etRemoveWord);
 
         etRemoveWord.setOnEditorActionListener(new EditText.OnEditorActionListener(){
             @Override
             public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
                 removeWord(etRemoveWord.getText().toString().toLowerCase());
-                if(flag == true)
+                if(flag == true){
                     finish();
+                }
                 return true;
             }
         });
@@ -38,9 +39,17 @@ public class RemoveWord extends AppCompatActivity {
         if(checkWordIsOnlyLetters(word)==true ||
                 checkWordIsOnlyDigits(word)==true){
             DataBaseHelper db = new DataBaseHelper(this);
-            db.removeWord(word);
-            flag = true;
+            if(db.removeWord(word)==true) {
+                Toast.makeText(this, "The word was removed successfully!", Toast.LENGTH_SHORT).show();
+                flag = true;
+            }
+            else {
+                Toast.makeText(this, "The word doesn't exist on the Database!", Toast.LENGTH_SHORT).show();
+                flag = false;
+            }
         }
+        else
+            Toast.makeText(this,"The word must be comprised of only letters or only digits!",Toast.LENGTH_SHORT).show();
 
     }
 
@@ -49,8 +58,6 @@ public class RemoveWord extends AppCompatActivity {
 
         for(char c : chars){
             if(!Character.isLetter(c)) {
-                Toast.makeText(this,"Word must be only letters or only digits",
-                        Toast.LENGTH_SHORT).show();
                 return false;
             }
         }
@@ -62,8 +69,6 @@ public class RemoveWord extends AppCompatActivity {
 
         for(char c : chars){
             if(!Character.isDigit(c)){
-                Toast.makeText(this,"Word must be only letters or only digits",
-                        Toast.LENGTH_SHORT).show();
                 return false;
             }
         }

@@ -7,11 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Objects;
-
-import static junit.framework.Assert.assertNotNull;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -31,14 +27,11 @@ public class MainActivity extends AppCompatActivity {
         //this.deleteDatabase("WordAdv");
         ddbHelper = new DictionaryDatabaseHelper(this);
         dbHelper = new DataBaseHelper(this);
-        //sqlDB.execSQL("PRAGMA foreign_keys=ON");
         try {
             ddbHelper.createDataBase();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Log.d("DEBUG","Attempt to check word psycho");
-        Log.d("DEBUG",""+ddbHelper.checkWordExists("psycho"));
 
     }
 

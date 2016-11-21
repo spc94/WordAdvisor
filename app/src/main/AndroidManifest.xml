@@ -18,15 +18,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".DataBaseHelper" />
         <activity android:name=".AddWord" />
         <activity android:name=".ImportText" />
         <activity android:name=".NewText" />
 
-        <service
-            android:name=".FileService"
-            android:enabled="true"
-            android:exported="true" />
 
         <activity android:name=".RemoveWord"></activity>
     </application>

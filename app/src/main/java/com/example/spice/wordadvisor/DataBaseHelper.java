@@ -58,8 +58,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             + "FOREIGN KEY("+SEQ_SEQ_ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+") ON DELETE CASCADE"
             + ")";
 
-    private static final String DROP_SEQUENCE_TABLE ="DROP TABLE " + SequenceWords;
-    private static final String DROP_SINGLES_TABLE  ="DROP TABLE " + SingleWords;
 
     public DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -89,12 +87,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void removeWord(String word){
+    public boolean removeWord(String word){
         SQLiteDatabase db = this.getWritableDatabase();
         String[] args = new String[]{word};
         Log.d("DEBUG","Attempting to Remove: "+word);
         boolean veredict = db.delete(SingleWords,"word=?",args)>0;
-        Log.d("DEBUG","Veredict: "+ veredict);
+        return veredict;
     }
 
     public boolean addWordToSingles(String word){
@@ -158,7 +156,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     }
 
-    public boolean checkSequenceSequenceExists(String prevWord, String word, String nextWord){
+    private boolean checkSequenceSequenceExists(String prevWord, String word, String nextWord){
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT count(*) " +
                 "FROM sequencesSequences " +
@@ -176,7 +174,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             return true;
     }
 
-    public void incrementSequenceSequence(String prevWord, String word, String nextWord){
+    private void incrementSequenceSequence(String prevWord, String word, String nextWord){
         SQLiteDatabase db = this.getWritableDatabase();
         String[] args = new String[]{prevWord.toLowerCase(),word.toLowerCase(),
                 nextWord.toLowerCase()};
@@ -188,7 +186,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 "AND seq_seq_ID=(SELECT id FROM singles WHERE word=?)",args);
     }
 
-    public int getNumSeqSeq(String prevWord, String word, String nextWord){
+    private int getNumSeqSeq(String prevWord, String word, String nextWord){
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT num_seq " +
                 "FROM sequencesSequences " +
@@ -204,7 +202,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public int getIDFromWord(String word){
+    private int getIDFromWord(String word){
         SQLiteDatabase db = this.getReadableDatabase();
         String count = "SELECT count(*) FROM singles";
         Cursor mCursor = db.rawQuery(count,null);
@@ -223,7 +221,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return cursorValue; //Retorna ID da palavra
     }
 
-    public boolean wordExistsOnSingles(String word){
+    private boolean wordExistsOnSingles(String word){
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT count(*) " +
                 "FROM singles " +
@@ -239,7 +237,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             return true;
     }
 
-    public void incrementSingles(String word){
+    private void incrementSingles(String word){
         SQLiteDatabase db = this.getWritableDatabase();
         String[] args = new String[]{word.toLowerCase()};
         ContentValues values = new ContentValues();
@@ -247,7 +245,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.update(SingleWords,values, "id=(SELECT id FROM singles WHERE word=?)",args);
     }
 
-    public void incrementSequence(String prevWord, String word){
+    private void incrementSequence(String prevWord, String word){
         SQLiteDatabase db = this.getWritableDatabase();
         String[] args = new String[]{prevWord.toLowerCase(),word.toLowerCase()};
         ContentValues values = new ContentValues();
@@ -258,7 +256,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
 
 
-    public int getNumSingles(String word){
+    private int getNumSingles(String word){
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT num_singles " +
                        "FROM singles " +
@@ -270,7 +268,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return result;
     }
 
-    public int getNumSeq(String prevWord, String word){
+    private int getNumSeq(String prevWord, String word){
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT num_seq " +
                 "FROM sequences " +
@@ -283,7 +281,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         return result;
     }
 
-    public boolean checkSequenceExists(String prevWord, String word){
+    private boolean checkSequenceExists(String prevWord, String word){
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT count(*) " +
                        "FROM sequences " +
@@ -314,9 +312,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         Log.d("DEBUG4","Word used: "+prevWord.toLowerCase());
         int i = 0;
         if(mCursor.moveToFirst()){
-            Log.d("DEBUG4","Cursor moved to first");
             do{
-                Log.d("DEBUG4","Word at "+i+" = "+mCursor.getString(0));
                 top[i] = mCursor.getString(0);
                 i++;
                 if(i == 3){
@@ -341,14 +337,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                 "ORDER BY qSum DESC " +
                 "LIMIT 3";
         Cursor mCursor = db.rawQuery(query, new String[]{prevPrevWord.toLowerCase(),prevWord.toLowerCase()});
-        Log.d("DEBUG4","Cursor Initialized");
-        Log.d("DEBUG4","PP Word used: "+prevPrevWord.toLowerCase());
-        Log.d("DEBUG4","P Word used: "+prevWord.toLowerCase());
         int i = 0;
         if(mCursor.moveToFirst()){
-            Log.d("DEBUG4","Cursor moved to first");
             do{
-                Log.d("DEBUG4","Word at "+i+" = "+mCursor.getString(0));
                 top[i] = mCursor.getString(0);
                 i++;
                 if(i == 3){

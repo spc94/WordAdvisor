@@ -24,8 +24,6 @@ import java.io.OutputStreamWriter;
 
 public class NewText extends AppCompatActivity {
 
-
-    private int atSpecialChar = 0;
     private String currentWord = "";
     private char c;
     private String prevWord = "";
@@ -36,7 +34,6 @@ public class NewText extends AppCompatActivity {
     private static boolean spaceFlag = false;
     Button bt1;
     Button bt2;
-    ;
     Button bt3;
     EditText et;
 
@@ -56,13 +53,11 @@ public class NewText extends AppCompatActivity {
         et.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                Log.d("DEBUG3", "Size of text: " + charSequence.length());
                 sizeBefore = charSequence.length();
             }
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                Log.d("DEBUG3", "Size of text: " + charSequence.length());
                 currentText = charSequence.toString();
                 if (sizeBefore < charSequence.length()) {
                     String[] topWords;
@@ -73,9 +68,7 @@ public class NewText extends AppCompatActivity {
                         c = charSequence.charAt(pos);
                     else
                         return;
-                    Log.d("DEBUG4", "Current char: " + c);
                     if (!Character.isLetterOrDigit(c)) {
-                        Log.d("DEBUG3", "Special char detected");
                         if (prevPrevWord.equals("") && prevWord.equals("")) {
                             addWordToDBSingles(currentWord);
                         } else if (prevPrevWord.equals("")) {
@@ -89,7 +82,6 @@ public class NewText extends AppCompatActivity {
                         prevPrevWord = prevWord;
                         prevWord = currentWord;
 
-                        Log.d("DEBUG3", "Previous Previous Word: " + prevPrevWord);
                         currentWord = "";
                         // Get Top Sequence from DB using prevWord
                         if (prevPrevWord.equals("") && prevWord.equals("")) {
@@ -102,11 +94,6 @@ public class NewText extends AppCompatActivity {
                             if (topWords[2] == null) { //If no sequence-sequence results
 
                                 topWordsAux = db.topSequence(prevWord.toLowerCase());
-                                Log.d("DEBUG", "TOP WORDS AUX 2: " + topWordsAux[2]);
-                                Log.d("DEBUG", "TOP WORDS AUX 1: " + topWordsAux[1]);
-                                Log.d("DEBUG", "TOP WORDS AUX 0: " + topWordsAux[0]);
-                                Log.d("DEBUG", "TOP WORDS 0: " + topWords[0]);
-                                Log.d("DEBUG", "TOP WORDS 1: " + topWords[1]);
                                 if (topWordsAux[2] != null) {
                                     if (!topWordsAux[2].equals(topWords[0]) ||
                                             !topWordsAux[2].equals(topWords[1])) {//If the word from sequence doesn't already belong to a sequence-sequence
@@ -128,16 +115,10 @@ public class NewText extends AppCompatActivity {
                         }
                     } else {
                         currentWord = currentWord + c;
-                        Log.d("DEBUG3", "Alphanumeric detected");
                         Log.d("DEBUG3", "Current word: " + currentWord);
 
                         topWords = db.topIncompleteWord(currentWord);
 
-
-                        /* TODO:
-                        * Different way of detecting previous word. For example looking until a space is found and reverting the chars
-                        * Suggest in the middle of the word, when deleting
-                        * */
                     }
 
                     if (topWords[0] != null)
@@ -221,11 +202,8 @@ public class NewText extends AppCompatActivity {
         } catch (Exception e) {
             return;
         }
-        ;
         //check if crashes on empty editText
-        Log.d("DEBUG5", "Inside click");
         while (Character.isLetterOrDigit(c)) {
-            Log.d("DEBUG5", "Char in Clicky: " + c);
             text = text.substring(0, pos);
             pos--;
             if (pos < 0)
@@ -261,7 +239,6 @@ public class NewText extends AppCompatActivity {
     }
 
     public boolean isFirstWord(String text) {
-        int pos;
         if (text.length() > 0)
             return false;
         return true;
