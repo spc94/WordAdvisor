@@ -43,8 +43,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             + ID_COLUMN + " INT, "
             + SEQ_ID_COLUMN + " INT, "
             + NUM_SEQ + " INT, "
-            + "FOREIGN KEY("+ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+"), "
-            + "FOREIGN KEY("+SEQ_ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+")"
+            + "FOREIGN KEY("+ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+") ON DELETE CASCADE, "
+            + "FOREIGN KEY("+SEQ_ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+") ON DELETE CASCADE"
             + ")";
 
     private static final String CREATE_SEQUENCE_SEQUENCE_TABLE = "CREATE TABLE "
@@ -53,9 +53,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             + SEQ_ID_COLUMN + " INT, "
             + SEQ_SEQ_ID_COLUMN + " INT, "
             + NUM_SEQ + " INT, "
-            + "FOREIGN KEY("+ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+"), "
-            + "FOREIGN KEY("+SEQ_ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+"), "
-            + "FOREIGN KEY("+SEQ_SEQ_ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+")"
+            + "FOREIGN KEY("+ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+") ON DELETE CASCADE, "
+            + "FOREIGN KEY("+SEQ_ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+") ON DELETE CASCADE, "
+            + "FOREIGN KEY("+SEQ_SEQ_ID_COLUMN+") REFERENCES "+SingleWords+"("+ID_COLUMN+") ON DELETE CASCADE"
             + ")";
 
     private static final String DROP_SEQUENCE_TABLE ="DROP TABLE " + SequenceWords;
@@ -67,18 +67,34 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        db.execSQL("PRAGMA foreign_keys = ON;");
         db.execSQL(CREATE_SEQUENCE_TABLE);
         db.execSQL(CREATE_SINGLES_TABLE);
         db.execSQL(CREATE_SEQUENCE_SEQUENCE_TABLE);
+        db.execSQL("PRAGMA foreign_keys = ON;");
+    }
+
+    @Override
+    public void onOpen(SQLiteDatabase db){ // So that the cascade works
+        db.execSQL("PRAGMA foreign_keys = ON;");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("PRAGMA foreign_keys = ON;");
         db.execSQL("DROP TABLE IF EXISTS " + SingleWords);
         db.execSQL("DROP TABLE IF EXISTS " + SequenceWords);
         db.execSQL("DROP TABLE IF EXISTS " + SequenceSequenceWords);
         // Create tables again
         onCreate(db);
+    }
+
+    public void removeWord(String word){
+        SQLiteDatabase db = this.getWritableDatabase();
+        String[] args = new String[]{word};
+        Log.d("DEBUG","Attempting to Remove: "+word);
+        boolean veredict = db.delete(SingleWords,"word=?",args)>0;
+        Log.d("DEBUG","Veredict: "+ veredict);
     }
 
     public boolean addWordToSingles(String word){

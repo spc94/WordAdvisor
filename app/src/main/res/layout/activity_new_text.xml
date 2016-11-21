@@ -7,16 +7,8 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingTop="5dp"
     tools:context="com.example.spice.wordadvisor.NewText">
-
-    <TextView
-        android:text="TextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:id="@+id/textView2" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -32,7 +24,8 @@
         android:scrollbars="vertical"
         android:layout_below="@+id/textView2"
         android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="30dp"/>
 
     <Button
         android:layout_width="wrap_content"
@@ -57,5 +50,24 @@
         android:layout_below="@+id/editText"
         android:layout_alignParentStart="true"
         android:onClick="clickButton2"/>
+
+    <Button
+        android:text="\@"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:id="@+id/buttonMail"
+        android:textSize="15dp"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@+id/buttonSave"
+        android:onClick="onClickMail"/>
+
+    <Button
+        android:text="Save"
+        android:layout_width="60dp"
+        android:layout_height="40dp"
+        android:id="@+id/buttonSave"
+        android:textSize="9.5dp"
+        android:onClick="onClickSave"
+        android:layout_alignParentTop="true" />
 
 </RelativeLayout>
